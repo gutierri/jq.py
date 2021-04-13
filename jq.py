@@ -23,6 +23,9 @@ import json
 import argparse
 
 
+__version__ = '0.1.0'
+
+
 def filter_selected_element(element):
     ''' Assemble the dictionary string, selecting operation objects
 
