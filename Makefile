@@ -14,7 +14,7 @@ test:
 
 .PHONY: lint
 lint:
-	@pylint3 jq.py
+	@python3 -m pylint $(PROG)
 
 .PHONY: install
 install:
