@@ -80,7 +80,11 @@ def main(source, query):
     '''
     with source as json_data:
         data = json_processor(json_data.read(), query)
-        json.dump(data, sys.stdout, indent=4)
+
+        if isinstance(data, str):
+            print(data)
+            return
+        print(json.dumps(data, indent=4, sort_keys=True))
 
 
 if __name__ == '__main__':
@@ -91,6 +95,6 @@ if __name__ == '__main__':
                             type=argparse.FileType(encoding="utf-8"),
                             help='a JSON file',
                             default=sys.stdin)
-    CMD_PARSER.add_argument('--query', type=str,
+    CMD_PARSER.add_argument('--query','-q', type=str,
                             help='query filter for json struct, like obj py')
     main(**vars(CMD_PARSER.parse_args()))
