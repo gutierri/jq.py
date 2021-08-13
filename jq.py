@@ -20,71 +20,46 @@ jq.py is a simple json processor and filtering (jq-like) for Pythonists
 import re
 import sys
 import json
+import pprint
 import argparse
 
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 
-def filter_selected_element(element):
-    ''' Assemble the dictionary string, selecting operation objects
+class JsonQueryParser:
+    def __init__(self, in_source, qs):
+        self.source = in_source
+        self.query_string = qs.split('.')
 
-    It makes a filter of what is a selection of JSON element and an operation
-    in a Python data structure (for example in a list).
+    def __str_to_token(self, key):
+        detect_access_by_index = re.match(r'([a-zA-Z].+?)(\[.+)', key)
 
-    Elements that will make selection, are around strings:
+        if not detect_access_by_index:
+            return '["{key}"]'.format(key=key)
 
-    e.g: x ['element']
+        token, q_index = detect_access_by_index.groups()
 
-    And operating elements are outside a string to be able to execute the
-    instruction:
+        return '["{key}"]{q_index}'.format(key=token, q_index=q_index)
 
-    e.g: x [-1]
+    def parser_qs(self):
+        return 'self.source' + ''.join(
+            [self.__str_to_token(k) for k in self.query_string]
+        )
 
-    >>> filter_selected_element('element')
-    '["element"]'
+    def exec_str_in_int(self):
+        return eval(self.parser_qs())
 
-    >>> filter_selected_element('1:1')
-    '[1:1]'
-    '''
-    return '["{}"]'.format(element) if re.match(r'^[a-zA-Z]', element) \
-                                    else '[{}]'.format(element)
-
-
-def json_processor(json_input, query):
-    '''
-    Given a JSON entry and a Python Obj-like query, it returns
-    the value of the filtered JSON.
-
-    >>> json_processor('{"obj": [{"key": "value"}]}', 'obj')
-    [{'key': 'value'}]
-
-    >>> json_processor('{"obj": [{"key": "value"}]}', 'obj.-1')
-    {'key': 'value'}
-
-    >>> json_processor('[{"key": "value"}]', '0')
-    {'key': 'value'}
-    '''
-    json_data = json.loads(json_input) # pylint: disable=unused-variable
-    if query:
-        build_dict_str_template = ''.join(
-            [filter_selected_element(element) for element in query.split('.')])
-        target = 'json_data' + build_dict_str_template
-    else:
-        target = 'json_data'
-    return eval(target) # pylint: disable=eval-used
+    @property
+    def dump(self):
+        return self.exec_str_in_int()
 
 
 def main(source, query):
-    ''' Filters the input JSON based on the input obj-like query
-    '''
     with source as json_data:
-        data = json_processor(json_data.read(), query)
-
-        if isinstance(data, str):
-            print(data)
-            return
-        print(json.dumps(data, indent=4, sort_keys=True))
+        json_doc = json.loads(json_data.read())
+    parser = JsonQueryParser(json_doc, query)
+    print(json.dumps(parser.dump, sort_keys=True, indent=4))
 
 
 if __name__ == '__main__':

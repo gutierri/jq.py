@@ -1,4 +1,5 @@
 PREFIX	= /usr/local
+
 BINDIR	= $(DESTDIR)$(PREFIX)/bin
 
 INSTALL_PROGRAM = install -D
@@ -10,7 +11,7 @@ all: test lint
 
 .PHONY: test
 test:
-	@python3 -m doctest -v $(PROG)
+	@python3 -m unittest discover
 
 .PHONY: lint
 lint:
