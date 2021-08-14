@@ -7,11 +7,15 @@ INSTALL_PROGRAM = install -D
 PROG=jq.py
 
 .PHONY: all
-all: test lint
+all: test coverage lint
 
 .PHONY: test
 test:
-	@python3 -m unittest discover
+	@python3 -m coverage run -m unittest discover -v
+
+.PHONY: coverage
+coverage:
+	@python3 -m coverage report -m
 
 .PHONY: lint
 lint:

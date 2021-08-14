@@ -14,13 +14,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>
-'''
-jq.py is a simple json processor and filtering (jq-like) for Pythonists
+''' jq.py is a simple json processor and filtering (jq-like) for Pythonists
 '''
 import re
 import sys
 import json
-import pprint
 import argparse
 
 
@@ -28,11 +26,19 @@ __version__ = '0.2.0'
 
 
 class JsonQueryParser:
+    ''' Creates a Python object from JSON string and allows accessing the data
+    structure through Python dot notation syntax and also using native features
+    of such structures.
+    '''
+
     def __init__(self, in_source, qs):
         self.source = in_source
-        self.query_string = qs.split('.')
+        self.query_string = qs
 
-    def __str_to_token(self, key):
+    @staticmethod
+    def attr_str_to_token(key):
+        ''' Retorna str de uma expressão válida Python
+        '''
         detect_access_by_index = re.match(r'([a-zA-Z].+?)(\[.+)', key)
 
         if not detect_access_by_index:
@@ -43,19 +49,25 @@ class JsonQueryParser:
         return '["{key}"]{q_index}'.format(key=token, q_index=q_index)
 
     def parser_qs(self):
-        return 'self.source' + ''.join(
-            [self.__str_to_token(k) for k in self.query_string]
-        )
+        ''' Process and transform standard input into a valid Python expression
 
-    def exec_str_in_int(self):
-        return eval(self.parser_qs())
+        Takes user input ``self.query_string`` in "dot notation" format,
+        processes that input, and builds a valid expression to access the
+        properties of ``self.source``, a native Python data structure
+        '''
+        return 'self.source' + ''.join([JsonQueryParser.attr_str_to_token(k)
+                                        for k in self.query_string.split('.')])
 
     @property
     def dump(self):
-        return self.exec_str_in_int()
+        ''' Returns the result of ``self.query_string``
+        '''
+        return eval(self.parser_qs(), {}, {'self': self}) # pylint: disable=W0123
 
 
 def main(source, query):
+    ''' Main function
+    '''
     with source as json_data:
         json_doc = json.loads(json_data.read())
     parser = JsonQueryParser(json_doc, query)
