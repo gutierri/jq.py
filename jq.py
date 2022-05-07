@@ -55,8 +55,13 @@ class JsonQueryParser:
         processes that input, and builds a valid expression to access the
         properties of ``self.source``, a native Python data structure
         '''
-        return 'self.source' + ''.join([JsonQueryParser.attr_str_to_token(k)
-                                        for k in self.query_string.split('.')])
+        if self.query_string:
+            qs = 'self.source' + ''.join([JsonQueryParser.attr_str_to_token(k)
+                                          for k in self.query_string.split('.')])
+        else:
+            qs = 'self.source'
+
+        return qs
 
     @property
     def dump(self):

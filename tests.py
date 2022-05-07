@@ -59,3 +59,16 @@ class TestJsonQueryParser(TestCase):
         mock_parser_qs.return_value = 'self'
         self.assertTrue(JsonQueryParser(self.in_source,
                                         'pagination.next').dump)
+
+    def test_empty_query_params(self):
+        self.assertEqual(
+            JsonQueryParser(self.in_source, None).dump, {
+            'results': [
+                {'x': 1, 'y': 2},
+                {'x': 10, 'y': 20}
+            ],
+            'pagination': {
+                'next': True,
+                'prev': False
+            }}
+        )
