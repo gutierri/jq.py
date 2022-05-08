@@ -31,9 +31,9 @@ class JsonQueryParser:
     of such structures.
     '''
 
-    def __init__(self, in_source, qs):
+    def __init__(self, in_source, query_string):
         self.source = in_source
-        self.query_string = qs
+        self.query_string = query_string
 
     @staticmethod
     def attr_str_to_token(key):
@@ -42,11 +42,11 @@ class JsonQueryParser:
         detect_access_by_index = re.match(r'([a-zA-Z].+?)(\[.+)', key)
 
         if not detect_access_by_index:
-            return '["{key}"]'.format(key=key)
+            return f'["{key}"]'
 
         token, q_index = detect_access_by_index.groups()
 
-        return '["{key}"]{q_index}'.format(key=token, q_index=q_index)
+        return f'["{token}"]{q_index}'
 
     def parser_qs(self):
         ''' Process and transform standard input into a valid Python expression
@@ -55,13 +55,12 @@ class JsonQueryParser:
         processes that input, and builds a valid expression to access the
         properties of ``self.source``, a native Python data structure
         '''
-        if self.query_string:
-            qs = 'self.source' + ''.join([JsonQueryParser.attr_str_to_token(k)
-                                          for k in self.query_string.split('.')])
-        else:
-            qs = 'self.source'
+        py_exp = 'self.source'
 
-        return qs
+        if self.query_string:
+            py_exp = py_exp + ''.join([JsonQueryParser.attr_str_to_token(k)
+                                       for k in self.query_string.split('.')])
+        return py_exp
 
     @property
     def dump(self):
